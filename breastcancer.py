@@ -12,73 +12,73 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
+# Load data function with updated path
+def load_data():
+    data = pd.read_csv('gbsg.csv')  # Update the path to your CSV file
+    data.drop(['Unnamed: 0'], axis=1, inplace=True)
+    data.drop(['pid', 'rfstime'], axis=1, inplace=True)
+    return data
+
+# Train the Random Forest model
+def train_model(data):
+    features = ['age', 'meno', 'size', 'grade', 'nodes', 'pgr', 'er', 'hormon']
+    X = data[features]
+    y = data['status']
+    
+    # Split the data
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    # Standardize the data
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
+    
+    # Train RandomForest Classifier
+    rf_classifier = RandomForestClassifier(n_estimators=100, random_state=52)
+    rf_classifier.fit(X_train, y_train)
+    
+    # Make predictions
+    y_pred = rf_classifier.predict(X_test)
+    
+    # Evaluate the model
+    accuracy = accuracy_score(y_test, y_pred)
+    confusion = confusion_matrix(y_test, y_pred)
+    report = classification_report(y_test, y_pred)
+    
+    return accuracy, confusion, report
+
 # Streamlit app layout
 st.title('Breast Cancer Detection using Random Forest Classifier')
 st.write('This app trains a Random Forest Classifier to predict breast cancer status.')
 
-# File uploader
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+# Load and display data
+data = load_data()
+st.write('Dataset:')
+st.dataframe(data)
 
-if uploaded_file is not None:
-    data = pd.read_csv(uploaded_file)
-    data.drop(['Unnamed: 0'], axis=1, inplace=True)
-    data.drop(['pid', 'rfstime'], axis=1, inplace=True)
+# Define X and y for visualization
+features = ['age', 'meno', 'size', 'grade', 'nodes', 'pgr', 'er', 'hormon']
+X = data[features]
+y = data['status']
 
-    st.write('Dataset:')
-    st.dataframe(data)
+# Plot pairplot
+st.subheader('Data Visualization')
+sns.pairplot(pd.concat([X, y], axis=1), hue='status', kind='hist')
+st.pyplot()
 
-    # Define X and y for visualization
-    features = ['age', 'meno', 'size', 'grade', 'nodes', 'pgr', 'er', 'hormon']
-    X = data[features]
-    y = data['status']
+# Heatmap of correlations
+st.subheader('Correlation Heatmap')
+fig, ax = plt.subplots(figsize=(10, 8))  # Create a figure and axis
+sns.heatmap(data.corr(), annot=True, ax=ax)  # Pass the axis to Seaborn
+st.pyplot(fig)  # Pass the figure to Streamlit
 
-    # Plot pairplot
-    st.subheader('Data Visualization')
-    fig = sns.pairplot(pd.concat([X, y], axis=1), hue='status', kind='hist')
-    st.pyplot(fig)
-
-    # Heatmap of correlations
-    st.subheader('Correlation Heatmap')
-    fig, ax = plt.subplots(figsize=(10, 8))  # Create a figure and axis
-    sns.heatmap(data.corr(), annot=True, ax=ax)  # Pass the axis to Seaborn
-    st.pyplot(fig)  # Pass the figure to Streamlit
-
-    # Train the Random Forest model
-    def train_model(data):
-        features = ['age', 'meno', 'size', 'grade', 'nodes', 'pgr', 'er', 'hormon']
-        X = data[features]
-        y = data['status']
-        # Split the data
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-        # Standardize the data
-        scaler = StandardScaler()
-        X_train = scaler.fit_transform(X_train)
-        X_test = scaler.transform(X_test)
-
-        # Train RandomForest Classifier
-        rf_classifier = RandomForestClassifier(n_estimators=100, random_state=52)
-        rf_classifier.fit(X_train, y_train)
-
-        # Make predictions
-        y_pred = rf_classifier.predict(X_test)
-
-        # Evaluate the model
-        accuracy = accuracy_score(y_test, y_pred)
-        confusion = confusion_matrix(y_test, y_pred)
-        report = classification_report(y_test, y_pred)
-
-        return accuracy, confusion, report
-
-    # Train and display results
-    if st.button('Train Model'):
-        st.write('Training the Random Forest model...')
-        accuracy, confusion, report = train_model(data)
-
-        st.write(f'**Accuracy**: {accuracy}')
-        st.write('**Confusion Matrix**:')
-        st.write(confusion)
-        st.write('**Classification Report**:')
-        st.text(report)
-else:
-    st.write("Please upload a CSV file.")
+# Train and display results
+if st.button('Train Model'):
+    st.write('Training the Random Forest model...')
+    accuracy, confusion, report = train_model(data)
+    
+    st.write(f'**Accuracy**: {accuracy}')
+    st.write('**Confusion Matrix**:')
+    st.write(confusion)
+    st.write('**Classification Report**:')
+    st.text(report)
