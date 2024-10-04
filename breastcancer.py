@@ -10,14 +10,14 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import warnings
 
-import warnings
 warnings.filterwarnings('ignore')
-pip install streamlit
+
 def load_data():
     data = pd.read_csv('/content/drive/MyDrive/gbsg.csv')
     data.drop(['Unnamed: 0'], axis=1, inplace=True)
     data.drop(['pid', 'rfstime'], axis=1, inplace=True)
     return data
+
 # Train the Random Forest model
 def train_model(data):
     features = ['age', 'meno', 'size', 'grade', 'nodes', 'pgr', 'er', 'hormon']
@@ -44,9 +44,9 @@ def train_model(data):
     report = classification_report(y_test, y_pred)
     
     return accuracy, confusion, report
-  # Streamlit app layout
-st.title('Breast Cancer Detection using Random Forest Classifier')
 
+# Streamlit app layout
+st.title('Breast Cancer Detection using Random Forest Classifier')
 st.write('This app trains a Random Forest Classifier to predict breast cancer status.')
 
 # Load and display data
@@ -54,11 +54,15 @@ data = load_data()
 st.write('Dataset:')
 st.dataframe(data)
 
+# Define X and y for visualization
+features = ['age', 'meno', 'size', 'grade', 'nodes', 'pgr', 'er', 'hormon']
+X = data[features]
+y = data['status']
+
 # Plot pairplot
 st.subheader('Data Visualization')
 sns.pairplot(pd.concat([X, y], axis=1), hue='status', kind='hist')
 st.pyplot()
-
 
 # Heatmap of correlations
 st.subheader('Correlation Heatmap')
